@@ -48,3 +48,5 @@ Before running this project, make sure you have the following dependencies insta
 Please use this tool responsibly and ensure that your actions comply with LinkedIn's terms of service and web scraping guidelines. Web scraping may be subject to legal restrictions, and excessive use could lead to IP bans or other consequences.
 
 **Note:** The list of user agents and proxies used in this project may need periodic updates to remain effective, as websites and services often change their policies and detection methods.
+
+**A SterlinBosh proprietory software - 2023**
