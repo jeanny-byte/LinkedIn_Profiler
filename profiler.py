@@ -165,7 +165,7 @@ while True:
 
             # Check if the maximum number of requests has been reached
             max_requests = 10
-            delay_duration = 5 * 60  # 5 minutes
+            delay_duration = 2 * 60  # 2 minutes
             if request_count >= max_requests:
                 print(f"Reached {max_requests} requests. Waiting for {delay_duration / 60} minutes...")
                 time.sleep(delay_duration)
