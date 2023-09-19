@@ -177,5 +177,5 @@ poetry.toml
 pyrightconfig.json
 test.py
 linkedin_search.log
-
+ANDOLE_LinkedIn_Profiles.csv
 # End of https://www.toptal.com/developers/gitignore/api/python.
