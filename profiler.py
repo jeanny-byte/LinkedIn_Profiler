@@ -93,7 +93,6 @@ def search_linkedin_profiles(contact_name, company, selected_search_engine):
             href = link.get('href')
             if href and 'linkedin.com/in/' in href:
                 text = link.text
-                print(text)
                 if re.search(f"{re.escape(contact_name)}", text, re.I):
                     linkedin_links.append(href)  # Append the LinkedIn profile link
                     if len(linkedin_links) >= 3:
@@ -102,7 +101,7 @@ def search_linkedin_profiles(contact_name, company, selected_search_engine):
         # Combine the first 3 links into a single cell, separated by commas
         links_combined = ', '.join(linkedin_links[:3])
 
-        results.append({"Contact Name": contact_name, "Company": company, "LinkedIn Profiles": links_combined})
+        results.append({"LinkedIn Profiles": links_combined})
 
         return results
 
@@ -124,6 +123,7 @@ layout = [
      sg.Radio("www.duckduckgo.com", "search_engine", key="www.duckduckgo.com"),
      sg.Radio("www.google.com", "search_engine", key="www.google.com")],
     [sg.Button("Start Search"), sg.Button("Exit")],
+    [sg.ProgressBar(100, orientation="h", size=(20, 20), key="progress_bar")],
 ]
 
 window = sg.Window("LinkedIn Search", layout, icon="linkedin-3-256.ico")
@@ -164,13 +164,17 @@ while True:
             request_count += 1
 
             # Check if the maximum number of requests has been reached
-            max_requests = 10
-            delay_duration = 2 * 60  # 2 minutes
+            max_requests = 2
+            delay_duration = 0.25 * 60  # 2 minutes
             if request_count >= max_requests:
                 print(f"Reached {max_requests} requests. Waiting for {delay_duration / 60} minutes...")
                 time.sleep(delay_duration)
                 # Reset the request count after the delay
                 request_count = 0
+
+           # Update the progress bar
+            progress = (index + 1) / len(df) * 100
+            window["progress_bar"].update(progress)
 
         if not results:
             print("No matching results found.")
