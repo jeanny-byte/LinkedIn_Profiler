@@ -39,26 +39,52 @@ search_engines = {
 def get_random_user_agent():
     return random.choice(user_agents)
 
-# Define a function to get a list of proxies from the API
-def get_proxies():
-    api_url = "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=1000&country=all&ssl=all&anonymity=al"
-    response = requests.get(api_url)
-    if response.status_code == 200:
-        return response.text.splitlines()
-    else:
-        return []
+# # Define a function to get a list of proxies from the API
+# def get_proxies():
+#     api_url = "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=1000&country=all&ssl=all&anonymity=al"
+#     response = requests.get(api_url)
+#     if response.status_code == 200:
+#         return response.text.splitlines()
+#     else:
+#         return []
 
+# Proxy lists
+Local_Proxies = [
+    '217.119.140.220:12324:14a46a7541d6b:10ab596399',
+    '45.143.5.226:12324:14a46a7541d6b:10ab596399',
+    '89.42.29.78:12324:14a46a7541d6b:10ab596399',
+    '45.91.32.157:12324:14a46a7541d6b:10ab596399',
+    '45.133.109.153:12324:14a46a7541d6b:10ab596399',
+]
 # Initialize the proxy list
-proxy_list = get_proxies()
+proxy_list = Local_Proxies
 current_proxy = None  # Variable to store the current proxy
 
 # Define a function to rotate through the proxy list
 def get_next_proxy():
     global proxy_list, current_proxy
     if not proxy_list:
-        proxy_list = get_proxies()
+        proxy_list = Local_Proxies
     current_proxy = proxy_list.pop(0)  # Get the next proxy from the list
     return current_proxy
+
+# Define a function to split the proxy into components
+def split_proxy(proxy_str):
+    components = proxy_str.split(":")
+    if len(components) == 4:
+        ip, port, user, password = components
+        return {
+            "http": f"http://{user}:{password}@{ip}:{port}",
+            "https": f"https://{user}:{password}@{ip}:{port}",
+        }
+    elif len(components) == 2:
+        ip, port = components
+        return {
+            "http": f"http://{ip}:{port}",
+            "https": f"https://{ip}:{port}",
+        }
+    else:
+        return None
 
 # Define a function to search the selected search engine and extract LinkedIn profiles
 def search_linkedin_profiles(contact_name, company, selected_search_engine):
@@ -72,10 +98,11 @@ def search_linkedin_profiles(contact_name, company, selected_search_engine):
         time.sleep(random.randint(5, 10))
 
         # Use the selected proxy to make the request
-        proxies = {
-            "http": current_proxy,
-            "https": current_proxy,
-        }
+        if current_proxy:
+            proxies = split_proxy(current_proxy)
+        else:
+            proxies = None
+
         headers = {
             'User-Agent': get_random_user_agent()
         }
@@ -88,16 +115,17 @@ def search_linkedin_profiles(contact_name, company, selected_search_engine):
         results = []
 
         linkedin_links = []  # Store the LinkedIn profile links
+        link_count = 0
 
         for link in soup.find_all('a'):
             href = link.get('href')
             if href and 'linkedin.com/in/' in href:
                 text = link.text
                 print(text)
-                if re.search(f"{re.escape(contact_name)}", text, re.I):
-                    linkedin_links.append(href)  # Append the LinkedIn profile link
-                    if len(linkedin_links) >= 3:
-                        break  # Stop after collecting the first 3 links
+                linkedin_links.append(href)  # Append the LinkedIn profile link
+                link_count += 1
+                if link_count >= 3:
+                    break  # Stop after collecting the first 3 links
 
         # Combine the first 3 links into a single cell, separated by commas
         links_combined = ', '.join(linkedin_links[:3])
@@ -157,7 +185,7 @@ while True:
 
         for index, row in df.iterrows():
             contact_name = row["Contact Name"]
-            company = row["Company"].replace("+", " ").replace("-", " ")
+            company = row["Company"].replace("-", " ")
             search_results = search_linkedin_profiles(contact_name, company, selected_search_engine)
             results.extend(search_results)
 
@@ -166,16 +194,19 @@ while True:
 
             # Check if the maximum number of requests has been reached
             max_requests = 10
-            delay_duration = 1 * 60  # 2 minutes
+            delay_duration = 1 * 60  # 1 minute
+
+            # Update the progress bar
+            progress = (index + 1) / len(df) * 100
+            window["progress_bar"].update(progress)
+
             if request_count >= max_requests:
                 print(f"Reached {max_requests} requests. Waiting for {delay_duration / 60} minutes...")
                 time.sleep(delay_duration)
                 # Reset the request count after the delay
                 request_count = 0
 
-                # Update the progress bar
-                progress = (index + 1) / len(df) * 100
-                window["progress_bar"].update(progress)
+
 
         if not results:
             print("No matching results found.")
