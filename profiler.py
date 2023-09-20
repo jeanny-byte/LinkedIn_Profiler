@@ -89,7 +89,7 @@ def split_proxy(proxy_str):
 # Define a function to search the selected search engine and extract LinkedIn profiles
 def search_linkedin_profiles(contact_name, company, selected_search_engine):
     if selected_search_engine not in search_engines:
-        print("Invalid search engine selected.")
+        window["text_element"].update("Invalid search engine selected.")
         return []
 
     search_url = search_engines[selected_search_engine] + f'"{contact_name}" AND {company} LinkedIn profile'
@@ -138,7 +138,7 @@ def search_linkedin_profiles(contact_name, company, selected_search_engine):
         print(f"Error: {e}")
         # If there was an error with the current proxy, switch to the next one
         if current_proxy:
-            print(f"Switching to the next proxy: {current_proxy}")
+            window["text_element"].update(f"Switching to the next proxy: {current_proxy}")
             get_next_proxy()
         return []
 
@@ -152,7 +152,8 @@ layout = [
      sg.Radio("www.duckduckgo.com", "search_engine", key="www.duckduckgo.com"),
      sg.Radio("www.google.com", "search_engine", key="www.google.com")],
     [sg.Button("Start Search"), sg.Button("Exit")],
-    [sg.ProgressBar(100, orientation="h", size=(20, 20), key="progress_bar")]
+    [sg.Text("Progress Bar "),sg.ProgressBar(100, orientation="h", size=(20, 20), key="progress_bar")],
+    [sg.Text("", size=(30, 1), key="text_element")],
 ]
 
 window = sg.Window("LinkedIn Search", layout, icon="linkedin-3-256.ico")
@@ -186,6 +187,7 @@ while True:
         for index, row in df.iterrows():
             contact_name = row["Contact Name"]
             company = row["Company"].replace("-", " ")
+            window["text_element"].update(f'Searching... {contact_name} in {company}')
             search_results = search_linkedin_profiles(contact_name, company, selected_search_engine)
             results.extend(search_results)
 
@@ -201,7 +203,7 @@ while True:
             window["progress_bar"].update(progress)
 
             if request_count >= max_requests:
-                print(f"Reached {max_requests} requests. Waiting for {delay_duration / 60} minutes...")
+                window["text_element"].update(f"Reached {max_requests} requests. Waiting for {delay_duration / 60} minutes...")
                 time.sleep(delay_duration)
                 # Reset the request count after the delay
                 request_count = 0
@@ -209,13 +211,14 @@ while True:
 
 
         if not results:
-            print("No matching results found.")
+            window["text_element"].update("No matching results found.")
             continue
 
         else:
             # Create a new CSV file with the original file name plus "LinkedIn_Profiles"
             base_file_name = os.path.splitext(os.path.basename(file_path))[0]
             new_file_name = f"{base_file_name}_LinkedIn_Profiles.csv"
+            window["text_element"].update(f'New file updated is stored as {new_file_name}')
 
             # Append the results to the original DataFrame and save to the new file
             df = pd.concat([df, pd.DataFrame(results)], axis=1)
