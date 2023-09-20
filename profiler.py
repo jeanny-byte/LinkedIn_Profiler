@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import random
 import requests
 import os
+import logging
 
 # Define a list of user agents to rotate through
 user_agents = [
@@ -118,7 +119,7 @@ def search_linkedin_profiles(contact_name, company, selected_search_engine):
             href = link.get('href')
             if href and 'linkedin.com/in/' in href:
                 text = link.text
-                print(text)
+                logging.info(text)
                 linkedin_links.append(href)  # Append the LinkedIn profile link
                 link_count += 1
                 if link_count >= 3:
@@ -132,7 +133,7 @@ def search_linkedin_profiles(contact_name, company, selected_search_engine):
         return results
 
     except Exception as e:
-        print(f"Error: {e}")
+        logging.error(f"Error: {e}")
         # If there was an error with the current proxy, switch to the next one
         if current_proxy:
             window["text_element"].update(f"Switching to the next proxy: {current_proxy}")
