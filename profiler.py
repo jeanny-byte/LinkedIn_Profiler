@@ -120,7 +120,7 @@ def search_linkedin_profiles(contact_name, company, selected_search_engine):
         for link in soup.find_all('a'):
             href = link.get('href')
             if href and 'linkedin.com/in/' in href:
-                text = link.text
+                text = link.text    
                 print(text)
                 linkedin_links.append(href)  # Append the LinkedIn profile link
                 link_count += 1
@@ -153,7 +153,7 @@ layout = [
      sg.Radio("www.google.com", "search_engine", key="www.google.com")],
     [sg.Button("Start Search"), sg.Button("Exit")],
     [sg.Text("Progress Bar "),sg.ProgressBar(100, orientation="h", size=(20, 20), key="progress_bar")],
-    [sg.Text("", size=(30, 1), key="text_element")],
+    [sg.Text("Status: "),sg.Text("", size=(30, 1), key="text_element")],
 ]
 
 window = sg.Window("LinkedIn Search", layout, icon="linkedin-3-256.ico")
